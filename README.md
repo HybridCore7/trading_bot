@@ -62,6 +62,9 @@ venv\Scripts\activate           # Windows
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Optional editable install
+pip install -e .
 ```
 
 ### 3. Configure API Keys
@@ -80,6 +83,8 @@ Your `.env` should look like:
 BINANCE_TESTNET_API_KEY=abc123...
 BINANCE_TESTNET_API_SECRET=xyz789...
 ```
+
+> `.env` is ignored by Git via `.gitignore`. Keep your actual API credentials local and do not commit them.
 
 ### 4. Verify Connectivity
 
@@ -187,7 +192,9 @@ Log files include:
 
 **Console output** shows only INFO-level and above for a clean user experience.
 
-Sample log files from actual test runs are included in `logs/samples/`.
+Sample log files from actual test runs are included in `logs/samples/`:
+- `logs/samples/market_order.log`
+- `logs/samples/limit_order.log`
 
 ---
 
@@ -223,8 +230,17 @@ Sample log files from actual test runs are included in `logs/samples/`.
 | `click` | CLI framework with argument parsing and validation |
 | `python-dotenv` | Load `.env` files for API credentials |
 | `rich` | Beautiful terminal formatting (tables, panels, colours) |
+| `pytest` | Automated unit testing for validation logic |
 
 All listed in `requirements.txt`. No heavyweight SDK required — the bot uses direct REST calls.
+
+## Testing
+
+Run the validator and order-mapping tests with:
+
+```bash
+python -m pytest tests/test_validators.py -q
+```
 
 ---
 

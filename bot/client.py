@@ -12,8 +12,9 @@ import httpx
 logger = logging.getLogger("trading_bot")
 
 
-# Defaults
+# Defaults — Binance Demo Trading (successor to the legacy Futures Testnet)
 DEFAULT_BASE_URL = "https://testnet.binancefuture.com"
+DEMO_BASE_URL = "https://demo-fapi.binance.com"
 REQUEST_TIMEOUT = 15  # seconds
 
 
@@ -46,8 +47,8 @@ class BinanceClient:
         if not api_key or not api_secret:
             raise ValueError("API key and secret must be provided. Check your .env file.")
 
-        self._api_key = api_key
-        self._api_secret = api_secret
+        self._api_key = api_key.strip()
+        self._api_secret = api_secret.strip()
         self._base_url = base_url.rstrip("/")
         self._client = httpx.Client(
             base_url=self._base_url,
@@ -60,8 +61,14 @@ class BinanceClient:
     # Authentication helpers
     # ------------------------------------------------------------------
 
-    def _sign(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Add timestamp and HMAC-SHA256 signature to request parameters."""
+    def _sign(self, params: Dict[str, Any]) -> str:
+        """Add timestamp, compute HMAC-SHA256 signature, return full query string.
+
+        Returns the complete query string (including signature) ready to be
+        appended to the URL.  This avoids relying on httpx's own parameter
+        serialisation which can encode values differently from urlencode and
+        break the signature.
+        """
         params["timestamp"] = int(time.time() * 1000)
         query_string = urlencode(params)
         signature = hmac.new(
@@ -69,8 +76,7 @@ class BinanceClient:
             query_string.encode("utf-8"),
             hashlib.sha256,
         ).hexdigest()
-        params["signature"] = signature
-        return params
+        return f"{query_string}&signature={signature}"
 
     # ------------------------------------------------------------------
     # Core request methods
@@ -102,9 +108,13 @@ class BinanceClient:
         """Send a GET request."""
         params = dict(params or {})
         if signed:
-            params = self._sign(params)
-        logger.debug("GET %s params=%s", path, params)
-        resp = self._client.get(path, params=params)
+            qs = self._sign(params)
+            url = f"{path}?{qs}"
+            logger.debug("GET %s (signed)", path)
+            resp = self._client.get(url)
+        else:
+            logger.debug("GET %s params=%s", path, params)
+            resp = self._client.get(path, params=params)
         return self._handle_response(resp)
 
     def post(
@@ -113,9 +123,13 @@ class BinanceClient:
         """Send a POST request (signed by default for order endpoints)."""
         params = dict(params or {})
         if signed:
-            params = self._sign(params)
-        logger.debug("POST %s params=%s", path, {k: v for k, v in params.items() if k != "signature"})
-        resp = self._client.post(path, params=params)
+            qs = self._sign(params)
+            url = f"{path}?{qs}"
+            logger.debug("POST %s params=%s", path, {k: v for k, v in params.items() if k != "signature"})
+            resp = self._client.post(url)
+        else:
+            logger.debug("POST %s params=%s", path, params)
+            resp = self._client.post(path, params=params)
         return self._handle_response(resp)
 
     def delete(
@@ -124,9 +138,13 @@ class BinanceClient:
         """Send a DELETE request."""
         params = dict(params or {})
         if signed:
-            params = self._sign(params)
-        logger.debug("DELETE %s params=%s", path, params)
-        resp = self._client.delete(path, params=params)
+            qs = self._sign(params)
+            url = f"{path}?{qs}"
+            logger.debug("DELETE %s (signed)", path)
+            resp = self._client.delete(url)
+        else:
+            logger.debug("DELETE %s params=%s", path, params)
+            resp = self._client.delete(path, params=params)
         return self._handle_response(resp)
 
     # ------------------------------------------------------------------
@@ -162,3 +180,4 @@ class BinanceClient:
 
     def __exit__(self, *args):
         self.close()
+

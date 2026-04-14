@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 import sys
+from typing import Optional
 
 import click
 from dotenv import load_dotenv
@@ -125,9 +126,20 @@ def _print_order_result(result: OrderResult) -> None:
         )
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# CLI Commands
-# ═══════════════════════════════════════════════════════════════════════════
+def _prompt_or_quit(prompt: str, default: Optional[str] = None, choices: Optional[list[str]] = None) -> Optional[str]:
+    """Ask a prompt, allow typing 'quit' to exit, and validate choice options."""
+    value = Prompt.ask(prompt, default=default)
+    if isinstance(value, str) and value.strip().lower() == "quit":
+        return None
+    if choices:
+        normalized = value.strip().upper()
+        if normalized not in [choice.upper() for choice in choices]:
+            raise ValueError(
+                f"Invalid choice '{value}'. Must be one of: {', '.join(choices)}."
+            )
+        return normalized
+    return value
+
 
 @click.group()
 def cli():
@@ -201,38 +213,50 @@ def interactive():
         while True:
             try:
                 # --- Gather input ---
-                symbol = Prompt.ask("  [bold]Symbol[/]", default="BTCUSDT")
-                if symbol.lower() == "quit":
+                symbol = _prompt_or_quit("  [bold]Symbol[/]", default="BTCUSDT")
+                if symbol is None:
                     break
 
-                side = Prompt.ask(
+                side = _prompt_or_quit(
                     "  [bold]Side[/]",
                     choices=["BUY", "SELL"],
                     default="BUY",
                 )
+                if side is None:
+                    break
 
-                order_type = Prompt.ask(
+                order_type = _prompt_or_quit(
                     "  [bold]Order type[/]",
                     choices=["MARKET", "LIMIT", "STOP_LIMIT"],
                     default="MARKET",
                 )
+                if order_type is None:
+                    break
 
-                quantity = Prompt.ask("  [bold]Quantity[/]", default="0.001")
+                quantity = _prompt_or_quit("  [bold]Quantity[/]", default="0.001")
+                if quantity is None:
+                    break
 
                 price = None
                 stop_price = None
                 if order_type in ("LIMIT", "STOP_LIMIT"):
-                    price = Prompt.ask("  [bold]Price[/]")
+                    price = _prompt_or_quit("  [bold]Price[/]")
+                    if price is None:
+                        break
                 if order_type == "STOP_LIMIT":
-                    stop_price = Prompt.ask("  [bold]Stop price[/]")
+                    stop_price = _prompt_or_quit("  [bold]Stop price[/]")
+                    if stop_price is None:
+                        break
 
                 tif = "GTC"
                 if order_type != "MARKET":
-                    tif = Prompt.ask(
+                    tif = _prompt_or_quit(
                         "  [bold]Time in force[/]",
                         choices=["GTC", "IOC", "FOK"],
                         default="GTC",
                     )
+                    if tif is None:
+                        break
 
                 # --- Validate ---
                 params = validate_order(
