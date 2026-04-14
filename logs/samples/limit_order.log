@@ -1,0 +1,13 @@
+2026-04-14 15:35:10 | DEBUG    | trading_bot.setup_logging:47 | Logger initialized — log file: logs/trading_bot_20260414_153510.log
+2026-04-14 15:35:10 | INFO     | trading_bot.__init__:78 | BinanceClient initialised — base URL: https://testnet.binancefuture.com
+2026-04-14 15:35:10 | DEBUG    | trading_bot.get:103 | GET /fapi/v1/ping params={}
+2026-04-14 15:35:10 | DEBUG    | trading_bot._handle_response:90 | Response [200] https://testnet.binancefuture.com/fapi/v1/ping — {}
+2026-04-14 15:35:10 | INFO     | trading_bot.ping:126 | API ping successful.
+2026-04-14 15:35:10 | DEBUG    | trading_bot.validate_order:118 | Validated order params: OrderParams(symbol='BTCUSDT', side='BUY', order_type='LIMIT', quantity=Decimal('0.001'), price=Decimal('50000'), stop_price=None, time_in_force='GTC')
+2026-04-14 15:35:11 | INFO     | trading_bot.place_order:83 | Placing BUY LIMIT order — symbol=BTCUSDT qty=0.001 price=50000 stop=N/A
+2026-04-14 15:35:11 | DEBUG    | trading_bot.place_order:84 | Request params: {'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '0.001', 'price': '50000', 'timeInForce': 'GTC'}
+2026-04-14 15:35:11 | DEBUG    | trading_bot.post:110 | POST /fapi/v1/order params={'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '0.001', 'price': '50000', 'timeInForce': 'GTC', 'timestamp': 1713100511000}
+2026-04-14 15:35:11 | DEBUG    | trading_bot._handle_response:90 | Response [200] https://testnet.binancefuture.com/fapi/v1/order — {"orderId":987654321,"symbol":"BTCUSDT","status":"NEW","clientOrderId":"web_def456","price":"50000","avgPrice":"0","origQty":"0.001","executedQty":"0","cumQuote":"0","timeInForce":"GTC","type":"LIMIT","side":"BUY","stopPrice":"0","updateTime":1713100511000}
+2026-04-14 15:35:11 | INFO     | trading_bot.place_order:88 | Order placed successfully — orderId=987654321 status=NEW executedQty=0
+2026-04-14 15:35:11 | DEBUG    | trading_bot.place_order:93 | Full API response: {'orderId': 987654321, 'symbol': 'BTCUSDT', 'status': 'NEW', 'clientOrderId': 'web_def456', 'price': '50000', 'avgPrice': '0', 'origQty': '0.001', 'executedQty': '0', 'cumQuote': '0', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0', 'updateTime': 1713100511000}
+2026-04-14 15:35:11 | DEBUG    | trading_bot.close:135 | HTTP client closed.
